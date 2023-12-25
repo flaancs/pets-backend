@@ -27,9 +27,6 @@ export class CreatePetDto {
   @Max(100)
   age: number;
 
-  @IsInt()
-  userId: number;
-
   @IsBoolean()
   isSterilized: boolean;
 }

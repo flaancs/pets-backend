@@ -19,12 +19,12 @@ export class PetsService {
     private readonly userRepository: Repository<User>
   ) {}
 
-  async create(createPetDto: CreatePetDto): Promise<Pet> {
+  async create(userId: number, createPetDto: CreatePetDto): Promise<Pet> {
     try {
       const pet = this.petRepository.create(createPetDto);
 
       const user = await this.userRepository.findOne({
-        where: { id: createPetDto.userId },
+        where: { id: userId },
       });
       if (!user) {
         throw new BadRequestException("User not found");
@@ -71,13 +71,27 @@ export class PetsService {
     }
   }
 
-  async update(id: number, updatePetDto: UpdatePetDto): Promise<Pet> {
+  async update(
+    userId: number,
+    id: number,
+    updatePetDto: UpdatePetDto
+  ): Promise<Pet> {
     try {
+      const pet = await this.petRepository.findOne({
+        where: { id },
+        relations: ["user"],
+      });
+
+      if (!pet) {
+        throw new NotFoundException("Pet not found");
+      }
+      
+      if (pet.user?.id !== userId) {
+        throw new BadRequestException("Pet does not belong to user");
+      }
+
       await this.petRepository.update(id, updatePetDto);
       const updatedPet = await this.petRepository.findOne({ where: { id } });
-      if (!updatedPet) {
-        throw new NotFoundException("No se ha encontrado la mascota");
-      }
       return updatedPet;
     } catch (error) {
       throw new BadRequestException({ message: error.message });

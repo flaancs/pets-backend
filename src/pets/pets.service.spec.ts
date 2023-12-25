@@ -40,7 +40,6 @@ describe("PetsService", () => {
         type: "Dog",
         breed: "Labrador",
         age: 5,
-        userId: 1,
         isSterilized: true,
       };
       const user = new User();
@@ -49,11 +48,11 @@ describe("PetsService", () => {
       petRepository.create = jest.fn().mockReturnValue(createPetDto);
       petRepository.save = jest.fn().mockResolvedValue(createPetDto);
 
-      const result = await service.create(createPetDto);
+      const result = await service.create(1, createPetDto);
 
       expect(result).toEqual(createPetDto);
       expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { id: createPetDto.userId },
+        where: { id: 1 },
       });
       expect(petRepository.create).toHaveBeenCalledWith(createPetDto);
       expect(petRepository.save).toHaveBeenCalledWith(createPetDto);
@@ -65,13 +64,12 @@ describe("PetsService", () => {
         type: "Dog",
         breed: "Labrador",
         age: 5,
-        userId: 999, // Non-existing user ID
         isSterilized: true,
       };
       userRepository.findOne = jest.fn().mockResolvedValue(null);
 
       try {
-        await service.create(createPetDto);
+        await service.create(999, createPetDto);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
@@ -124,18 +122,42 @@ describe("PetsService", () => {
   describe("update", () => {
     it("should update a pet", async () => {
       const petId = 1;
-      const updatePetDto: UpdatePetDto = { name: "New Buddy" };
+      const updatePetDto: UpdatePetDto = {
+        name: "New Buddy",
+      };
+      const newUser = new User();
+      newUser.id = 1;
+
       const existingPet = new Pet();
       existingPet.id = petId;
+      existingPet.user = newUser;
       petRepository.update = jest.fn();
       petRepository.findOne = jest.fn().mockResolvedValue(existingPet);
 
-      await service.update(petId, updatePetDto);
+      await service.update(newUser.id, petId, updatePetDto);
 
       expect(petRepository.update).toHaveBeenCalledWith(petId, updatePetDto);
       expect(petRepository.findOne).toHaveBeenCalledWith({
         where: { id: petId },
       });
+    });
+
+    it("should throw BadRequestException when pet does not belong to user", async () => {
+      const petId = 1;
+      const updatePetDto: UpdatePetDto = {
+        name: "New Buddy",
+      };
+
+      const existingPet = new Pet();
+      existingPet.id = petId;
+      petRepository.update = jest.fn();
+      petRepository.findOne = jest.fn().mockResolvedValue(existingPet);
+
+      try {
+        await service.update(2, petId, updatePetDto);
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException);
+      }
     });
 
     it("should throw BadRequestException if the pet does not exist", async () => {
@@ -144,7 +166,7 @@ describe("PetsService", () => {
       petRepository.findOne = jest.fn().mockResolvedValue(null);
 
       try {
-        await service.update(petId, updatePetDto);
+        await service.update(1, petId, updatePetDto);
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
       }
