@@ -35,6 +35,7 @@ describe("AuthController", () => {
         ...userDto,
         id: 1,
         validatePassword: () => Promise.resolve(true),
+        pets: [],
       };
       usersService.create.mockResolvedValue(expectedResponse);
 

@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 import { Exclude } from "class-transformer";
+import { Pet } from "@/pets/entities/pet.entity";
 import * as bcrypt from "bcrypt";
 
 @Entity()
@@ -7,18 +8,21 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: "varchar", length: 300 })
+  @Column({ length: 300 })
   name: string;
 
-  @Column({ type: "varchar", length: 300, unique: true })
+  @Column({ length: 300, unique: true })
   email: string;
 
   @Exclude()
-  @Column({ type: "varchar", length: 500 })
+  @Column({ length: 500 })
   password: string;
 
-  @Column({ type: "varchar", length: 15 })
+  @Column({ length: 15 })
   phoneNumber: string;
+
+  @OneToMany(() => Pet, (pet) => pet.user)
+  pets: Pet[];
 
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
