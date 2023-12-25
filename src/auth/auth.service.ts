@@ -30,13 +30,13 @@ export class AuthService {
       const user = await this.usersService.findByEmail(email);
 
       if (!user) {
-        throw new UnauthorizedException("Email o contraseña incorrectos");
+        throw new UnauthorizedException("Email or password incorrect");
       }
 
       const passwordIsValid = await user.validatePassword(password);
 
       if (!passwordIsValid) {
-        throw new UnauthorizedException("Email o contraseña incorrectos");
+        throw new UnauthorizedException("Email or password incorrect");
       }
 
       const payload = { sub: user.id, username: user.email };
