@@ -32,7 +32,6 @@ describe("AuthService", () => {
       userMock.validatePassword = jest.fn().mockResolvedValue(true);
       userMock.name = "Test User";
       userMock.phoneNumber = "1234567890";
-      userMock.isAdmin = false;
 
       usersService.findByEmail.mockResolvedValue(userMock);
 
@@ -45,7 +44,6 @@ describe("AuthService", () => {
         name: userMock.name,
         email: userMock.email,
         phoneNumber: userMock.phoneNumber,
-        isAdmin: userMock.isAdmin,
       });
       expect(userMock.validatePassword).toHaveBeenCalledWith(
         "correct-password"
