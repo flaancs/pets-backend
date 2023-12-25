@@ -20,9 +20,6 @@ export class User {
   @Column({ type: "varchar", length: 15 })
   phoneNumber: string;
 
-  @Column({ type: "boolean", default: false })
-  isAdmin: boolean;
-
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
   }

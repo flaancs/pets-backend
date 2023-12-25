@@ -3,7 +3,6 @@ export class RegisterUserDto {
   readonly email: string;
   readonly password: string;
   readonly phoneNumber: string;
-  readonly isAdmin: boolean;
 }
 
 export class LoginUserDto {

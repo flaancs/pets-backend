@@ -30,7 +30,7 @@ export class UsersService {
 
   async create(registerUserDto: RegisterUserDto): Promise<User> {
     try {
-      const { name, email, password, phoneNumber, isAdmin } = registerUserDto;
+      const { name, email, password, phoneNumber } = registerUserDto;
 
       if (!name || !email || !password || !phoneNumber) {
         throw new BadRequestException({
@@ -59,7 +59,6 @@ export class UsersService {
       user.email = email;
       user.password = hashedPassword;
       user.phoneNumber = phoneNumber;
-      user.isAdmin = isAdmin;
 
       return this.userRepository.save(user);
     } catch (error) {
