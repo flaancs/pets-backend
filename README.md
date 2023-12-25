@@ -2,10 +2,7 @@
 
 ```bash
 # development
-$ npm run start:dev
-
-# production mode
-$ docker-compose up -d --build
+$ docker-compose up -d 
 ```
 
 ## Test
