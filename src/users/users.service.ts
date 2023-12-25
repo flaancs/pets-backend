@@ -1,8 +1,12 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  PlainLiteralObject,
+} from "@nestjs/common";
 import { User } from "./entities/user.entity";
-import { LoginUserDto, RegisterUserDto } from "./dto/user.dto";
+import { RegisterUserDto } from "./dto/user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ILike, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { genSalt, hash } from "bcrypt";
 
 @Injectable()
@@ -28,25 +32,13 @@ export class UsersService {
     }
   }
 
-  async create(registerUserDto: RegisterUserDto): Promise<User> {
+  async create(registerUserDto: RegisterUserDto): Promise<PlainLiteralObject> {
     try {
       const { name, email, password, phoneNumber } = registerUserDto;
 
-      if (!name || !email || !password || !phoneNumber) {
-        throw new BadRequestException({
-          message: "Todos los campos son requeridos",
-        });
-      }
-
-      if (password.length < 6) {
-        throw new BadRequestException({
-          message: "La contraseña debe contener al menos 6 caracteres",
-        });
-      }
-
       if (await this.findByEmail(email)) {
         throw new BadRequestException({
-          message: "Ya existe un usuario con este correo electrónico",
+          message: "User with this email already exists",
         });
       }
 
