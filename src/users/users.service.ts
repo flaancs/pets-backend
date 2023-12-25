@@ -4,7 +4,7 @@ import {
   PlainLiteralObject,
 } from "@nestjs/common";
 import { User } from "./entities/user.entity";
-import { RegisterUserDto } from "./dto/user.dto";
+import { RegisterUserDto, UpdateUserDto } from "./dto/user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { genSalt, hash } from "bcrypt";
@@ -56,5 +56,29 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException({ message: error.message });
     }
+  }
+
+  async update(userId: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.findOne(userId);
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+
+    if (
+      updateUserDto.password &&
+      updateUserDto.password !== updateUserDto.passwordConfirm
+    ) {
+      throw new BadRequestException("Passwords do not match");
+    }
+
+    if (updateUserDto.password) {
+      const salt = await genSalt();
+      user.password = await hash(updateUserDto.password, salt);
+    }
+
+    user.name = updateUserDto.name ?? user.name;
+    user.phoneNumber = updateUserDto.phoneNumber ?? user.phoneNumber;
+
+    return this.userRepository.save(user);
   }
 }

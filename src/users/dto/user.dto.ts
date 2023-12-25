@@ -1,4 +1,11 @@
-import { IsString, IsEmail, Length, IsPhoneNumber } from "class-validator";
+import {
+  IsString,
+  IsEmail,
+  Length,
+  IsPhoneNumber,
+  IsOptional,
+  MinLength,
+} from "class-validator";
 
 export class RegisterUserDto {
   @IsString()
@@ -23,4 +30,23 @@ export class LoginUserDto {
   @IsString()
   @Length(6, 20)
   readonly password: string;
+}
+
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsPhoneNumber()
+  phoneNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password?: string;
+
+  @IsOptional()
+  @IsString()
+  passwordConfirm?: string;
 }

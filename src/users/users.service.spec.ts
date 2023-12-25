@@ -3,7 +3,7 @@ import { UsersService } from "./users.service";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
-import { RegisterUserDto } from "./dto/user.dto";
+import { RegisterUserDto, UpdateUserDto } from "./dto/user.dto";
 import { BadRequestException } from "@nestjs/common";
 
 jest.mock("bcrypt", () => ({
@@ -47,7 +47,9 @@ describe("UsersService", () => {
     });
 
     it("should handle errors when finding a user by ID", async () => {
-      userRepository.findOne.mockRejectedValue(new BadRequestException("Not found"));
+      userRepository.findOne.mockRejectedValue(
+        new BadRequestException("Not found")
+      );
       await expect(service.findOne(1)).rejects.toThrow(BadRequestException);
     });
   });
@@ -66,7 +68,9 @@ describe("UsersService", () => {
     });
 
     it("should handle errors when finding a user by email", async () => {
-      userRepository.findOne.mockRejectedValue(new BadRequestException("Not found"));
+      userRepository.findOne.mockRejectedValue(
+        new BadRequestException("Not found")
+      );
       await expect(service.findByEmail("test@example.com")).rejects.toThrow(
         BadRequestException
       );
@@ -98,13 +102,67 @@ describe("UsersService", () => {
         phoneNumber: "1234567890",
       };
 
-      // Simulate finding an existing user
       userRepository.findOne.mockResolvedValue(new User());
 
       await expect(service.create(userDto)).rejects.toThrow(
         BadRequestException
       );
       expect(userRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("update", () => {
+    it("should update a user's information", async () => {
+      const updateUserDto: UpdateUserDto = {
+        name: "Updated Name",
+        phoneNumber: "9876543210",
+        password: "newPassword123",
+        passwordConfirm: "newPassword123",
+      };
+      const existingUser = new User();
+      existingUser.id = 1;
+      existingUser.name = "Jane Doe";
+      existingUser.phoneNumber = "1234567890";
+      existingUser.password = "hashed-password";
+
+      userRepository.findOne.mockResolvedValue(existingUser);
+      userRepository.save.mockResolvedValue({
+        ...existingUser,
+        ...updateUserDto,
+        password: "hashed-newPassword",
+        validatePassword: () => Promise.resolve(true),
+      });
+
+      const result = await service.update(1, updateUserDto);
+
+      expect(result.name).toEqual(updateUserDto.name);
+      expect(result.phoneNumber).toEqual(updateUserDto.phoneNumber);
+      expect(result.password).not.toEqual(updateUserDto.password); // The password should be hashed
+      expect(userRepository.save).toHaveBeenCalledWith(expect.any(User));
+    });
+
+    it("should throw an error if the user is not found", async () => {
+      const updateUserDto: UpdateUserDto = { name: "Updated Name" };
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.update(1, updateUserDto)).rejects.toThrow(
+        BadRequestException
+      );
+    });
+
+    it("should throw an error if the passwords do not match", async () => {
+      const updateUserDto: UpdateUserDto = {
+        password: "newPassword123",
+        passwordConfirm: "differentPassword",
+      };
+      const existingUser = new User();
+      existingUser.id = 1;
+
+      userRepository.findOne.mockResolvedValue(existingUser);
+
+      await expect(service.update(1, updateUserDto)).rejects.toThrow(
+        BadRequestException
+      );
     });
   });
 });
