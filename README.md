@@ -1,5 +1,6 @@
 ## Running the app
 
+### Important: Rename .env.example to .env
 ```bash
 # development
 $ docker-compose up -d 
