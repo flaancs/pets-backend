@@ -26,8 +26,9 @@ export class PetsService {
       const user = await this.userRepository.findOne({
         where: { id: userId },
       });
+      
       if (!user) {
-        throw new BadRequestException("User not found");
+        throw new BadRequestException(`User with ID ${userId} found`);
       }
 
       pet.user = user;
@@ -83,7 +84,7 @@ export class PetsService {
       });
 
       if (!pet) {
-        throw new NotFoundException("Pet not found");
+        throw new NotFoundException(`Pet with ID ${id} found`);
       }
       
       if (pet.user?.id !== userId) {

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   PlainLiteralObject,
 } from "@nestjs/common";
 import { User } from "./entities/user.entity";
@@ -8,6 +9,7 @@ import { RegisterUserDto, UpdateUserDto } from "./dto/user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { genSalt, hash } from "bcrypt";
+import { Pet } from "@/pets/entities/pet.entity";
 
 @Injectable()
 export class UsersService {
@@ -61,7 +63,7 @@ export class UsersService {
   async update(userId: number, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(userId);
     if (!user) {
-      throw new BadRequestException("User not found");
+      throw new BadRequestException(`User with ID ${userId} not found`);
     }
 
     if (
@@ -80,5 +82,18 @@ export class UsersService {
     user.phoneNumber = updateUserDto.phoneNumber ?? user.phoneNumber;
 
     return this.userRepository.save(user);
+  }
+
+  async findUserPets(userId: number): Promise<Pet[]> {
+    const userWithPets = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['pets'],
+    });
+
+    if (!userWithPets) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    return userWithPets.pets;
   }
 }

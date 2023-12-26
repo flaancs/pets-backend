@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Req, UseGuards } from "@nestjs/common";
 import { UpdateUserDto } from "./dto/user.dto";
 import { UsersService } from "./users.service";
 import { JwtAuthGuard } from "@/auth/jwt-auth.guard";
@@ -13,5 +13,12 @@ export class UsersController {
   async update(@Req() req: Request, @Body() updateUserDto: UpdateUserDto) {
     const userId = (req.user as any)?.userId;
     return this.usersService.update(userId, updateUserDto);
+  }
+
+  @Get("my-pets")
+  @UseGuards(JwtAuthGuard)
+  getUserPets(@Req() req: Request) {
+    const userId = (req.user as any)?.userId;
+    return this.usersService.findUserPets(userId);
   }
 }
