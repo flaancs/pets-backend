@@ -26,7 +26,6 @@ export class PetsController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   async findAll(@Query() query: FindPetsQueryDto) {
     return this.petsService.findAll(query);
   }
