@@ -4,7 +4,7 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
 import { RegisterUserDto, UpdateUserDto } from "./dto/user.dto";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 
 jest.mock("bcrypt", () => ({
   compare: jest.fn().mockResolvedValue(true),
@@ -162,6 +162,64 @@ describe("UsersService", () => {
 
       await expect(service.update(1, updateUserDto)).rejects.toThrow(
         BadRequestException
+      );
+    });
+  });
+
+  describe("findUserPets", () => {
+    it("should return pets for a given user", async () => {
+      const userId = 1;
+
+      const userWithPets = new User();
+      userWithPets.id = userId;
+
+      const userPets = [
+        {
+          id: 1,
+          name: "Buddy",
+          type: "dog",
+          breed: "Golden Retriever",
+          age: 2,
+          isSterilized: true,
+          user: userWithPets,
+        },
+      ];
+
+      userWithPets.pets = userPets;
+      userRepository.findOne.mockResolvedValue(userWithPets);
+
+      const result = await service.findUserPets(userId);
+
+      expect(result).toEqual(userPets);
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: { id: userId },
+        relations: ["pets"],
+      });
+    });
+
+    it("should return an empty array if the user has no pets", async () => {
+      const userId = 2;
+      const userWithNoPets = new User();
+      userWithNoPets.id = userId;
+      userWithNoPets.pets = [];
+
+      userRepository.findOne.mockResolvedValue(userWithNoPets);
+
+      const result = await service.findUserPets(userId);
+
+      expect(result).toEqual([]);
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: { id: userId },
+        relations: ["pets"],
+      });
+    });
+
+    it("should throw NotFoundException if the user does not exist", async () => {
+      const userId = 999;
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.findUserPets(userId)).rejects.toThrow(
+        NotFoundException
       );
     });
   });
